@@ -11,13 +11,13 @@ RUN apk add --no-cache postgresql-dev gcc python3-dev musl-dev && \
 
 COPY . .
 
+# Create the static directory
+RUN mkdir -p /artback/static
+
 # Collect static files
 RUN python manage.py collectstatic --noinput
 
-# Create a script to run migrations and start the server
-RUN echo '#!/bin/sh\n\
-    python manage.py migrate\n\
-    gunicorn artback.wsgi:application --bind 0.0.0.0:8000' > /start.sh && \
-    chmod +x /start.sh
+# Make sure the script is executable
+RUN chmod +x /artback/start.sh
 
-CMD ["/start.sh"]
+CMD ["/artback/start.sh"]

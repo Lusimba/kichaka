@@ -6,6 +6,7 @@ services:
     volumes:
       - ./artback:/artback
       - static_volume:/artback/staticfiles
+      - sqlite_data:/artback/data
     ports:
       - "8000:8000"
 
@@ -28,3 +29,4 @@ services:
 
 volumes:
   static_volume:
+  sqlite_data:
