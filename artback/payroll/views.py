@@ -25,12 +25,12 @@ logger = logging.getLogger(__name__)
 class PayrollViewSet(viewsets.ModelViewSet):
     queryset = Payroll.objects.all()
     serializer_class = PayrollSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
-    def get_permissions(self):
-        if self.action in ['generate_monthly_payroll', 'monthly_completion_stats', 'annual_artist_stats', 'pay_bonuses']:
-            return [IsAuthenticated(), IsManagerOrProprietor()]
-        return super().get_permissions()
+    # def get_permissions(self):
+    #     if self.action in ['generate_monthly_payroll', 'monthly_completion_stats', 'annual_artist_stats', 'pay_bonuses']:
+    #         return [IsAuthenticated(), IsManagerOrProprietor()]
+    #     return super().get_permissions()
 
     # @action(detail=False, methods=['post'])
     # def generate_monthly_payroll(self, request):

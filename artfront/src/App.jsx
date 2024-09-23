@@ -22,24 +22,15 @@ const DefectTracking = lazy(() => import('./pages/Quality/DefectTracking'));
 const ReportsDashboard = lazy(() => import('./pages/Reports/ReportsDashboard'));
 const SignUp = lazy(() => import('./pages/Auth/SignUp'));
 const SignIn = lazy(() => import('./pages/Auth/SignIn'));
-const AccessDenied = lazy(() => import('./components/AccessDenied'));
 
-const PrivateRoute = ({ requiredPermission }) => {
-  const { isAuthenticated, loading, user } = useSelector(state => state.auth);
+const PrivateRoute = () => {
+  const { isAuthenticated, loading } = useSelector(state => state.auth);
   
   if (loading) {
     return <div className="flex justify-center items-center h-screen"><LoadingSpinner size={100} /></div>;
   }
   
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
-  }
-
-  if (requiredPermission && !user.permissions.includes(requiredPermission)) {
-    return <Navigate to="/access-denied" />;
-  }
-  
-  return <Outlet />;
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
 };
 
 function App() {
@@ -56,11 +47,10 @@ function App() {
           {/* Auth routes outside of Layout */}
           <Route path="/register" element={<SignUp />} />
           <Route path="/login" element={<SignIn />} />
-          <Route path="/access-denied" element={<AccessDenied />} />
           
           {/* All other routes inside Layout and protected */}
-          <Route element={<Layout />}>
-            <Route element={<PrivateRoute />}>
+          <Route element={<PrivateRoute />}>
+            <Route element={<Layout />}>
               {/* Production routes */}
               <Route index element={<ProductionTracking />} />
               <Route path="production/:id" element={<ProductionDetails />} />
@@ -73,27 +63,19 @@ function App() {
               
               {/* Inventory routes */}
               <Route path="inventory" element={<InventoryDashboard />} />
-            </Route>
 
-            {/* HR routes - require 'hr' permission */}
-            <Route element={<PrivateRoute requiredPermission="hr" />}>
+              {/* HR routes */}
               <Route path="hr" element={<HRDashboard />} />
               <Route path="hr/artist/:id" element={<ArtistDetail />} />
               <Route path="hr/staff/:id" element={<StaffMemberDetail />} />
-            </Route>
 
-            {/* Payroll routes - require 'payroll' permission */}
-            <Route element={<PrivateRoute requiredPermission="payroll" />}>
+              {/* Payroll routes */}
               <Route path="payroll" element={<PayrollDashboard />} />
-            </Route>
 
-            {/* Quality routes - require 'quality' permission */}
-            <Route element={<PrivateRoute requiredPermission="quality" />}>
+              {/* Quality routes */}
               <Route path="quality" element={<DefectTracking />} />
-            </Route>
 
-            {/* Reports routes - require 'reports' permission */}
-            <Route element={<PrivateRoute requiredPermission="reports" />}>
+              {/* Reports routes */}
               <Route path="reports" element={<ReportsDashboard />} />
             </Route>
           </Route>
