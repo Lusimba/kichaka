@@ -1,3 +1,4 @@
+# artback/start.sh
 #!/bin/sh
 
 # Make migrations

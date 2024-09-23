@@ -1,3 +1,4 @@
+# makefile
 .PHONY: build up down logs shell migrate makemigrations test clean rebuild start help
 
 # Variables
