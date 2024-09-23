@@ -12,12 +12,6 @@ RUN apk add --no-cache postgresql-dev gcc python3-dev musl-dev && \
 
 COPY . .
 
-# Create the static directory
-RUN mkdir -p /artback/static
-
-# Collect static files
-RUN python manage.py collectstatic --noinput
-
 # Make sure the script is executable
 RUN chmod +x /artback/start.sh
 

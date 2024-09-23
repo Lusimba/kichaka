@@ -1,6 +1,12 @@
 # artback/start.sh
 #!/bin/sh
 
+# Create the static directory
+mkdir -p /artback/static
+
+# Collect static files
+python manage.py collectstatic --noinput
+
 # Make migrations
 python manage.py makemigrations
 
