@@ -1,0 +1,127 @@
+## Inventory Management
+
+name = models.CharField(max_length=100)
+category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='items')
+stock = models.PositiveIntegerField(default=0)
+sku = models.CharField(max_length=9, null=True, blank=True, unique=True, editable=False)
+splitting_drawing_cost = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], default=0)
+carving_cutting_cost = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], default=0)
+sanding_cost = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], default=0)
+painting_cost = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], default=0)
+finishing_cost = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], default=0)
+packaging_cost = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], default=0)
+selling_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    
+- `/api/items/` (GET, POST): List and create inventory items
+- `/api/items/{id}/` (GET, PUT, PATCH, DELETE): Retrieve, update, and delete a specific inventory item
+
+
+
+category
+
+name = models.CharField(max_length=100, unique=True)
+
+- `/api/categories/` (GET, POST): List and create categories
+- `/api/categories/{id}/` (GET, PUT, PATCH, DELETE): Retrieve, update, and delete a specific 
+
+item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='activities')
+activity_type = models.CharField(max_length=10, choices=ACTIVITY_TYPES)
+quantity = models.PositiveIntegerField()
+timestamp = models.DateTimeField(auto_now_add=True)
+
+    
+- `/api/inventory-activities/` (GET, POST): List and create inventory activities
+- `/api/inventory-activities/{id}/` (GET, PUT, PATCH, DELETE): Retrieve, update, and delete a specific inventory activity
+
+
+
+
+
+
+
+## Order Management
+
+class Customer(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True, blank=True)
+    phone = models.CharField(max_length=20, blank=True)
+
+
+class Order(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders')
+    employee = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, related_name='handled_orders')
+    order_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='NEW')
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+
+## Orders
+- `/api/customers/` (GET, POST): List and create customers
+- `/api/customers/{id}/` (GET, PUT, PATCH, DELETE): Retrieve, update, and delete a specific customer
+- `/api/orders/` (GET, POST): List and create orders
+- `/api/orders/{id}/` (GET, PUT, PATCH, DELETE): Retrieve, update, and delete a specific order
+- `/api/order-items/` (GET, POST): List and create order items
+- `/api/order-items/{id}/` (GET, PUT, PATCH, DELETE): Retrieve, update, and delete a specific order item
+
+
+
+
+
+
+## Production
+class ProductionTask(models.Model):
+
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='production_tasks')
+    artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name='production_tasks')
+    quantity = models.PositiveIntegerField()
+    start_date = models.DateField()
+    end_date = models.DateField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    notes = models.TextField(blank=True)
+
+class QualityCheck(models.Model):
+
+    production_task = models.ForeignKey(ProductionTask, on_delete=models.CASCADE, related_name='quality_checks')
+    checked_by = models.ForeignKey('core.Employee', on_delete=models.CASCADE, related_name='quality_checks')
+    check_date = models.DateTimeField(auto_now_add=True)
+    result = models.CharField(max_length=4, choices=RESULT_CHOICES)
+    notes = models.TextField(blank=True)
+
+- `/api/production-tasks/` (GET, POST): List and create production tasks
+- `/api/production-tasks/{id}/` (GET, PUT, PATCH, DELETE): Retrieve, update, and delete a specific production task
+- `/api/quality-checks/` (GET, POST): List and create quality checks
+- `/api/quality-checks/{id}/` (GET, PUT, PATCH, DELETE): Retrieve, update, and delete a specific quality check
+
+
+
+
+
+## Core (Human Resources)
+class Department(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    
+class Employee(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, on_delete=models.PROTECT)
+    hire_date = models.DateField()
+
+class Artist(Employee):
+    specialization = models.CharField(max_length=100)
+
+class StaffMember(Employee):
+    position = models.CharField(max_length=100)
+
+- `/api/departments/` (GET, POST): List and create departments
+- `/api/departments/{id}/` (GET, PUT, PATCH, DELETE): Retrieve, update, and delete a specific department
+- `/api/employees/` (GET, POST): List and create employees
+- `/api/employees/{id}/` (GET, PUT, PATCH, DELETE): Retrieve, update, and delete a specific employee
+- `/api/artists/` (GET, POST): List and create artists
+- `/api/artists/{id}/` (GET, PUT, PATCH, DELETE): Retrieve, update, and delete a specific artist
+- `/api/staff_members/` (GET, POST): List and create staff members
+- `/api/staff_members/{id}/` (GET, PUT, PATCH, DELETE): Retrieve, update, and delete a specific staff member
