@@ -10,6 +10,8 @@ services:
       - sqlite_data:/artback/data
     ports:
       - "8000:8000"
+    tty: true
+    stdin_open: true
 
   frontend:
     build: 
