@@ -7,6 +7,12 @@ mkdir -p /artback/static
 # Collect static files
 python manage.py collectstatic --noinput
 
+echo "Checking static folder "
+ls /artback/static/
+
+echo "Checking staticfiles folder "
+ls /artback/staticfiles/
+
 # Make migrations
 python manage.py makemigrations
 
