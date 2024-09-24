@@ -16,10 +16,6 @@ RUN mkdir -p /artback/static
 
 CMD ["sh", "-c", "\
     python manage.py collectstatic --noinput && \
-    echo 'Checking static folder' && \
-    ls /artback/static/ && \
-    echo 'Checking staticfiles folder' && \
-    ls /artback/staticfiles/ && \
     python manage.py makemigrations && \
     python manage.py migrate && \
     gunicorn artback.wsgi:application --bind 0.0.0.0:8000 \
