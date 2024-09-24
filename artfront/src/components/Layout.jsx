@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logoutUser } from '../store/slices/authSlice';
+import { URL } from '../utils/api';
 
 const menuItems = [
     { text: 'New Task', path: '/new-task' },
@@ -54,7 +55,7 @@ function Layout() {
                                 </button>
                             ) : item.isExternal ? (  // For external links like Admin
                                 <a
-                                    href="http://127.0.0.1:8000/admin/"
+                                    href={`${URL}/admin/`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="block px-4 py-2 hover:bg-[#A5A58D] hover:text-white transition-colors duration-200 text-gray-600"
