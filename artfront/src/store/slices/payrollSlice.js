@@ -6,7 +6,7 @@ export const fetchPayrollData = createAsyncThunk(
   'payroll/fetchPayrollData',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/api/payroll/current_month_payroll');
+      const response = await api.get('/api/payroll/current_month_payroll/');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
