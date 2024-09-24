@@ -3,7 +3,6 @@ services:
   backend:
     build: 
       context: ./artback
-    command: gunicorn artback.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - ./artback:/artback
       - static_volume:/artback/staticfiles
