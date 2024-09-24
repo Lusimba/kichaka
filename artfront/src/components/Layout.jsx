@@ -28,10 +28,7 @@ function Layout() {
         }
         return location.pathname.startsWith(path);
     };
-
-    useEffect(() => {
-        console.log( {URL} )
-    }, [location]);
+    console.log( URL );
 
     const handleLogout = () => {
         dispatch(logoutUser()).then(() => {
