@@ -2,7 +2,7 @@
 .PHONY: build up down logs shell migrate makemigrations test clean rebuild start help
 
 # Variables
-DOCKER_COMPOSE = docker-compose
+DOCKER_COMPOSE = docker compose
 
 # Default target
 .DEFAULT_GOAL := help

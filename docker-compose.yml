@@ -23,9 +23,12 @@ services:
     image: nginx:latest
     ports:
       - 80:80
+      - 443:443
     volumes:
       - ./nginx/nginx-setup.conf:/etc/nginx/conf.d/default.conf:ro
       - static_volume:/artback/staticfiles
+      - /etc/letsencrypt/live/kichakapoa.com/fullchain.pem:/etc/letsencrypt/live/kichakapoa.com/fullchain.pem
+      - /etc/letsencrypt/live/kichakapoa.com/privkey.pem:/etc/letsencrypt/live/kichakapoa.com/privkey.pem
     depends_on:
       - frontend
       - backend
