@@ -14,8 +14,10 @@ services:
   frontend:
     build: 
       context: ./artfront
+    expose:
+      - 8080
     ports:
-      - "3000:80"
+      - "8080:80"
 
   nginx:
     image: nginx:latest
