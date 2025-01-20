@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchCategories, addItem } from '../../../store/slices/inventorySlice';
+import { searchCategories, addItem } from '../../../store/slices/inventorySlice';
+import { debounce } from 'lodash';
 
 const INITIAL_ITEM_STATE = {
   name: '',
@@ -27,16 +28,27 @@ const COST_FIELDS = [
 
 function AddItemForm({ onClose }) {
   const dispatch = useDispatch();
-  const { categories, loading } = useSelector((state) => state.inventory);
+  const { categorySearchResults, categorySearchLoading, loading } = useSelector((state) => state.inventory);
   const [newItem, setNewItem] = useState(INITIAL_ITEM_STATE);
-  const [suggestedCategories, setSuggestedCategories] = useState([]);
   const [formErrors, setFormErrors] = useState({});
-  const categoryInputRef = useRef(null);
   const formRef = useRef(null);
 
+  // Create debounced search function
+  const debouncedSearch = useCallback(
+    debounce((term) => {
+      if (term.trim()) {
+        dispatch(searchCategories(term));
+      }
+    }, 300),
+    [dispatch]
+  );
+
+  // Clear debounce on unmount
   useEffect(() => {
-    dispatch(fetchCategories());
-  }, [dispatch]);
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -94,27 +106,22 @@ function AddItemForm({ onClose }) {
   const handleCategoryChange = useCallback((e) => {
     const value = e.target.value;
     setNewItem(prev => ({ ...prev, category: value }));
-    if (value.length > 0 && categories.results) {
-      const matched = categories.results.filter(category => 
-        category.name.toLowerCase().includes(value.toLowerCase())
-      );
-      setSuggestedCategories(matched);
-    } else {
-      setSuggestedCategories([]);
+    
+    if (value.trim()) {
+      debouncedSearch(value);
     }
-  }, [categories.results]);
+  }, [debouncedSearch]);
 
-  const handleCategorySelect = useCallback((category) => {
-    setNewItem(prev => ({ ...prev, category: category.name }));
-    setSuggestedCategories([]);
-    if (categoryInputRef.current) {
-      categoryInputRef.current.value = category.name;
-    }
+  const handleCategorySelect = useCallback((categoryName) => {
+    setNewItem(prev => ({ ...prev, category: categoryName }));
   }, []);
 
   const handleInputChange = useCallback((field, value) => {
     setNewItem(prev => ({ ...prev, [field]: value }));
-  }, []);
+    if (formErrors[field]) {
+      setFormErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  }, [formErrors]);
 
   const formatFieldName = (field) => {
     return field
@@ -141,32 +148,47 @@ function AddItemForm({ onClose }) {
               />
               {formErrors.name && <p className="text-red-500 text-xs italic">{formErrors.name}</p>}
             </div>
+
             <div className="mb-4">
               <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
-              <input
-                type="text"
-                name="category"
-                id="category"
-                onChange={handleCategoryChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                required
-                ref={categoryInputRef}
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  name="category"
+                  id="category"
+                  value={newItem.category}
+                  onChange={handleCategoryChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  required
+                />
+                {categorySearchLoading && (
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                    <span className="text-gray-400">Loading...</span>
+                  </div>
+                )}
+                
+                {/* Move the dropdown inside the relative div and adjust styling */}
+                {newItem.category && categorySearchResults.length > 0 && (
+                  <ul className="absolute left-0 right-0 z-50 mt-1 bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm border border-gray-300">
+                    {categorySearchResults.map((category) => (
+                      <li
+                        key={category.id}
+                        className="cursor-pointer px-4 py-2 hover:bg-blue-50 text-gray-900"
+                        onClick={() => {
+                          handleCategorySelect(category.name);
+                          // Clear the search results after selection
+                          dispatch({ type: 'inventory/clearCategorySearch' });
+                        }}
+                      >
+                        {category.name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
               {formErrors.category && <p className="text-red-500 text-xs italic">{formErrors.category}</p>}
-              {suggestedCategories.length > 0 && (
-                <ul className="absolute z-10 mt-1 bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-                  {suggestedCategories.map((category) => (
-                    <li
-                      key={category.id}
-                      className="cursor-default select-none relative py-2 pl-3 pr-9 hover:bg-indigo-600 hover:text-white"
-                      onClick={() => handleCategorySelect(category)}
-                    >
-                      {category.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
             </div>
+
             <div className="mb-4">
               <label htmlFor="stock" className="block text-sm font-medium text-gray-700">Initial Stock</label>
               <input
@@ -181,6 +203,7 @@ function AddItemForm({ onClose }) {
               />
               {formErrors.stock && <p className="text-red-500 text-xs italic">{formErrors.stock}</p>}
             </div>
+
             {COST_FIELDS.map((field) => (
               <div key={field} className="mb-4">
                 <label htmlFor={field} className="block text-sm font-medium text-gray-700">{formatFieldName(field)}</label>
@@ -196,6 +219,7 @@ function AddItemForm({ onClose }) {
                 />
               </div>
             ))}
+
             <div className="mb-4">
               <label htmlFor="selling_price" className="block text-sm font-medium text-gray-700">Selling Price</label>
               <input
@@ -211,9 +235,11 @@ function AddItemForm({ onClose }) {
               />
               {formErrors.selling_price && <p className="text-red-500 text-xs italic">{formErrors.selling_price}</p>}
             </div>
+
             {formErrors.submit && (
               <p className="text-red-500 text-sm italic mb-4">{formErrors.submit}</p>
             )}
+
             <div className="mt-4 flex justify-center">
               <button
                 type="submit"

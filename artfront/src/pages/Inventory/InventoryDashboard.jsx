@@ -1,3 +1,4 @@
+// src/pages/Inventory/InventoryDashboard.jsx
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FaBoxOpen, FaClipboardList, FaExclamationTriangle, FaPlus } from 'react-icons/fa';
@@ -29,7 +30,8 @@ function InventoryDashboard() {
   const [selectedItem, setSelectedItem] = useState(null);
 
   const totalItems = useMemo(() => items?.count || 0, [items]);
-  const lowStockCount = useMemo(() => lowStockItems?.count || 0, [lowStockItems]);
+  const lowStockCount = useMemo( () => lowStockItems?.count || 0, [ lowStockItems ] );
+  const hasCategoriesError = categories.count === 0;
 
   useEffect(() => {
     dispatch( fetchCategories() );
@@ -67,6 +69,15 @@ function InventoryDashboard() {
       console.error('Failed to update stock:', error);
     }
   }, [dispatch, activeView, currentPage, searchTerm]);
+  
+  const handleAddItemClick = useCallback(() => {
+    if (hasCategoriesError) {
+      // Show the add category form instead
+      setShowAddCategoryForm(true);
+    } else {
+      setShowAddItemForm(true);
+    }
+  }, [hasCategoriesError]);
 
   const handleAddItem = useCallback(async (itemData) => {
     try {
@@ -205,11 +216,19 @@ function InventoryDashboard() {
             onClick={() => setShowAddCategoryForm(true)} 
           />
         ) : (
-          <ActionButton 
-            icon={<FaPlus />} 
-            text="Add New Item" 
-            onClick={() => setShowAddItemForm(true)} 
-          />
+          <div className="flex flex-col">
+            <ActionButton 
+              icon={<FaPlus />} 
+              text="Add New Item" 
+              onClick={handleAddItemClick}
+              disabled={hasCategoriesError}
+            />
+            {hasCategoriesError && (
+              <p className="text-yellow-600 text-sm mt-2">
+                Please add categories first before creating items
+              </p>
+            )}
+          </div>
         )}
       </div>
 

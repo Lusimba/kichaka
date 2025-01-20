@@ -24,6 +24,17 @@ class CategoryViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    @action(detail=False, methods=['get'])
+    def search(self, request):
+        q = request.query_params.get('q', '')
+        if q:
+            queryset = self.get_queryset().filter(name__icontains=q)[:5]  # Limit to 5 results
+        else:
+            queryset = self.get_queryset().none()
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})
+
 class ItemViewSet(viewsets.ModelViewSet):
     queryset = Item.objects.all()
     serializer_class = ItemSerializer

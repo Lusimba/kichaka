@@ -20,13 +20,34 @@ export const fetchCategories = createAsyncThunk(
   'inventory/fetchCategories',
   async (_, { rejectWithValue }) => {
     try {
-      let allCategories = [];
-      let nextUrl = '/api/categories/';
+      // Get the first page
+      const response = await api.get('/api/categories/');
+      
+      // Early return if empty or invalid response
+      if (!response.data || !response.data.results) {
+        return {
+          count: 0,
+          next: null,
+          previous: null,
+          results: []
+        };
+      }
+
+      // If there's only one page, return immediately
+      if (!response.data.next) {
+        return response.data;
+      }
+
+      // If there are multiple pages, fetch them all
+      let allCategories = [...response.data.results];
+      let nextUrl = response.data.next;
 
       while (nextUrl) {
-        const response = await api.get(nextUrl);
-        allCategories = [...allCategories, ...response.data.results];
-        nextUrl = response.data.next;
+        const nextResponse = await api.get(nextUrl);
+        if (!nextResponse.data || !nextResponse.data.results) break;
+        
+        allCategories = [...allCategories, ...nextResponse.data.results];
+        nextUrl = nextResponse.data.next;
       }
 
       return {
@@ -35,6 +56,25 @@ export const fetchCategories = createAsyncThunk(
         previous: null,
         results: allCategories
       };
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'An error occurred');
+    }
+  },
+  {
+    // Prevent duplicate requests when loading
+    condition: (_, { getState }) => {
+      const { inventory } = getState();
+      return !inventory.loading;
+    }
+  }
+);
+
+export const searchCategories = createAsyncThunk(
+  'inventory/searchCategories',
+  async (searchTerm, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/api/categories/search/?q=${searchTerm}`);
+      return response.data.results || [];
     } catch (error) {
       return rejectWithValue(error.response?.data || 'An error occurred');
     }
@@ -147,6 +187,9 @@ const inventorySlice = createSlice({
       results: [],
       count: 0
     },
+    categorySearchResults: [],
+    categorySearchLoading: false,
+
     loading: false,
     error: null,
   },
@@ -157,6 +200,9 @@ const inventorySlice = createSlice({
     setSelectedCategory: (state, action) => {
       state.selectedCategory = action.payload;
     },
+    clearCategorySearch: (state) => {
+      state.categorySearchResults = [];
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -243,6 +289,17 @@ const inventorySlice = createSlice({
       .addCase(updateSingleStock.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(searchCategories.pending, (state) => {
+        state.categorySearchLoading = true;
+      })
+      .addCase(searchCategories.fulfilled, (state, action) => {
+        state.categorySearchResults = action.payload;
+        state.categorySearchLoading = false;
+      })
+      .addCase(searchCategories.rejected, (state) => {
+        state.categorySearchResults = [];
+        state.categorySearchLoading = false;
       });
   },
 });

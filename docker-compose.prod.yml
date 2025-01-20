@@ -1,0 +1,11 @@
+services:
+  frontend:
+    command: npm run preview
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=https://kichakapoa.com/api
+
+  backend:
+    environment:
+      - DJANGO_ENV=production
+      - DEBUG=0

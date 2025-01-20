@@ -1,0 +1,11 @@
+services:
+  frontend:
+    command: npm run dev
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost/api
+
+  backend:
+    environment:
+      - DJANGO_ENV=development
+      - DEBUG=1

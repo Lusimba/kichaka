@@ -12,16 +12,68 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from rest_framework.exceptions import ValidationError as DRFValidationError
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
 
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except DRFValidationError as e:
+            return Response(
+                {"error": "Validation failed", "details": e.detail},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except IntegrityError:
+            return Response(
+                {"error": "User with this email already exists"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {"error": "Failed to create user", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 class ArtistCreateView(generics.CreateAPIView):
     queryset = Artist.objects.all()
     serializer_class = ArtistSerializer
     permission_classes = (IsAuthenticated,)
+
+    def create(self, request, *args, **kwargs):
+        try:
+            # Check if specialization exists
+            specialization_id = request.data.get('specialization')
+            if specialization_id:
+                try:
+                    Specialization.objects.get(id=specialization_id)
+                except Specialization.DoesNotExist:
+                    return Response(
+                        {"error": "Invalid specialization", "details": f"Specialization with id {specialization_id} does not exist"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except DRFValidationError as e:
+            return Response(
+                {"error": "Validation failed", "details": e.detail},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            print(f"error: Failed to create artist. details: {str(e)}")
+            return Response(
+                {"error": "Failed to create artist", "details": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class ArtistUpdateView(generics.UpdateAPIView):
     queryset = Artist.objects.all()
