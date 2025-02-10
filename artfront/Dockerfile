@@ -1,3 +1,4 @@
+# artfront/Dockerfile
 # --- Builder Stage ---
 FROM node:18-slim AS builder
 
