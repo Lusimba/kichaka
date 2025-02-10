@@ -1,0 +1,65 @@
+name: Remove Nginx and Migrate to Caddy
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+jobs:
+  remove-nginx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Remove Nginx and Setup Caddy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Create backup of nginx config
+            sudo tar -czf ~/nginx_backup_$(date +%Y%m%d_%H%M%S).tar.gz /etc/nginx/
+
+            # Stop and disable nginx
+            sudo systemctl stop nginx
+            sudo systemctl disable nginx
+
+            # Install Caddy if not already present
+            if ! command -v caddy &> /dev/null; then
+              sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+              curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+              curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+              sudo apt update
+              sudo apt install caddy
+            fi
+
+            # Setup Caddy
+            sudo cp ~/kichaka/Caddyfile /etc/caddy/Caddyfile
+            sudo chown caddy:caddy /etc/caddy/Caddyfile
+            sudo chmod 644 /etc/caddy/Caddyfile
+
+            # Start Caddy
+            sudo systemctl enable caddy
+            sudo systemctl restart caddy
+
+            # Verify Caddy is running
+            if ! sudo systemctl is-active --quiet caddy; then
+              echo "ERROR: Caddy failed to start."
+              exit 1
+            fi
+
+            # Remove nginx completely
+            sudo apt-get remove --purge nginx nginx-common nginx-full -y
+            sudo apt-get autoremove -y
+            sudo rm -rf /etc/nginx
+            sudo rm -rf /var/log/nginx
+
+            echo "Migration completed successfully. Nginx has been removed and Caddy is running."
+            echo "Nginx backup created at ~/nginx_backup_*.tar.gz"
+
+            # Verify Caddy is still running after cleanup
+            if sudo systemctl is-active --quiet caddy; then
+              echo "Caddy service is running properly"
+            else
+              echo "WARNING: Caddy service is not running"
+              exit 1
+            fi

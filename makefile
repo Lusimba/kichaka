@@ -57,7 +57,7 @@ dev: ## Start development environment
 	make start
 
 prod: ## Start production environment
-	ENVIRONMENT=prod \
+	ENVIRONMENT=production \
 	NODE_ENV=production \
 	DJANGO_ENV=production \
 	make start
@@ -67,7 +67,7 @@ collectstatic: ## Collect Django static files
 
 help: ## Display this help message
 	@echo "Usage: make [target]"
-	@echo "Environment: ENVIRONMENT=[dev|prod] (default: dev)"
+	@echo "Environment: ENVIRONMENT=[dev|production] (default: dev)"
 	@echo ""
 	@echo "Targets:"
 	@awk -F ':|##' '/^[^\t].+?:.*?##/ { printf "  %-20s %s\n", $$1, $$NF }' $(MAKEFILE_LIST)

@@ -31,6 +31,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ~/kichaka
-            export ENVIRONMENT=prod
+            export ENVIRONMENT=production
             make rebuild
             docker compose exec -T backend python manage.py migrate
