@@ -1,7 +1,7 @@
 name: Remove Nginx
 
 on:
-  workflow_dispatch: # Manual trigger only
+  workflow_dispatch:
 
 jobs:
   remove-nginx:
@@ -9,16 +9,22 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Remove Nginx
+      - name: Remove Nginx and Clean Ports
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Stop nginx
+            # Stop any containers using port 80
+            docker ps | grep ':80' | awk '{print $1}' | xargs -r docker stop
+
+            # Stop and disable nginx
             sudo systemctl stop nginx
             sudo systemctl disable nginx
+
+            # Kill any remaining processes using port 80
+            sudo lsof -i :80 | grep LISTEN | awk '{print $2}' | xargs -r sudo kill -9
 
             # Remove nginx completely
             sudo apt-get remove --purge nginx nginx-common nginx-full -y
@@ -26,4 +32,13 @@ jobs:
             sudo rm -rf /etc/nginx
             sudo rm -rf /var/log/nginx
 
-            echo "Nginx has been completely removed from the system"
+            # Remove orphaned Docker containers
+            docker compose down --remove-orphans
+
+            # Verify port 80 is free
+            if ! lsof -i :80 > /dev/null; then
+              echo "Port 80 is now free"
+            else
+              echo "Warning: Port 80 is still in use"
+              sudo lsof -i :80
+            fi
