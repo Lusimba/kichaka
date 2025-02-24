@@ -30,22 +30,13 @@ RUN if [ "$NODE_ENV" = "production" ]; then \
     fi
 
 # --- Production Stage ---
-FROM caddy:2-alpine AS production
+FROM nginx:alpine AS production
 
-RUN adduser -D -u 1000 caddy && \
-    mkdir -p /data/caddy /config/caddy && \
-    chown -R caddy:caddy /data/caddy /config/caddy
+COPY --from=builder /artfront/dist /usr/share/nginx/html
 
-COPY --from=builder /artfront/dist /usr/share/caddy
+EXPOSE 80
 
-ENV XDG_CONFIG_HOME=/config \
-    XDG_DATA_HOME=/data
-
-USER caddy
-
-EXPOSE 5173
-
-CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+CMD ["nginx", "-g", "daemon off;"]
 
 # --- Development Stage ---
 FROM builder AS development
