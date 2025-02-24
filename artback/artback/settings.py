@@ -152,10 +152,19 @@ CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOW_CREDENTIALS = True
 
 
-
-CORS_ALLOW_HEADERS = list(corsheaders.defaults.default_headers) + [
-    'X-CSRFTOKEN',
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
+
+CORS_EXPOSE_HEADERS = ['X-CSRFTOKEN']
 
 # WhiteNoise configuration
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

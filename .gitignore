@@ -58,3 +58,8 @@ venv.bak/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+certbot/conf/*
+!certbot/conf/.gitkeep
+certbot/www/*
+!certbot/www/.gitkeep
