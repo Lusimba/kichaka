@@ -2,34 +2,24 @@
 # --- Builder Stage ---
 FROM node:18-slim AS builder
 
-# Set build arguments and environment variables
-ARG NODE_ENV=production
-ENV NODE_ENV=$NODE_ENV \
-    NPM_CONFIG_LOGLEVEL=error \
-    NPM_CONFIG_CACHE=/tmp/npm-cache \
-    PATH=/artfront/node_modules/.bin:$PATH 
-
 WORKDIR /artfront
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies using cache mount
-RUN --mount=type=cache,target=/tmp/npm-cache \
-    npm install --production=false
+# Install ALL dependencies because we need them for build
+RUN npm ci   # Faster and more reliable than npm install
 
 # Copy source files
 COPY . .
 
 # Build for production
-RUN if [ "$NODE_ENV" = "production" ]; then \
-    npm run build && \
-    npm prune --production; \ 
-    fi
+RUN npm run build
 
 # --- Production Stage ---
 FROM nginx:alpine AS production
 
+# Only copy the built files - no node_modules, source, etc.
 COPY --from=builder /artfront/dist /usr/share/nginx/html
 
 EXPOSE 80
