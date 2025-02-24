@@ -1,3 +1,4 @@
+# artback/entrypoint.sh
 #!/bin/bash
 
 # Set environment variables if not already set
@@ -13,6 +14,9 @@ export ENVIRONMENT=${ENVIRONMENT:-dev}
 # Create the static directory
 mkdir -p /artback/static
 mkdir -p /artback/staticfiles
+
+chown -R appuser:appuser /artback/static
+chown -R appuser:appuser /artback/staticfiles
 
 # Collect static files
 python manage.py collectstatic --noinput

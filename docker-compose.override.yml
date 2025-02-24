@@ -1,11 +1,27 @@
+# docker-compose.override.yml
 services:
   frontend:
     command: npm run dev
+    ports:
+      - "5173:5173"
     environment:
       - NODE_ENV=development
       - VITE_API_URL=http://localhost/api
 
   backend:
+    ports:
+      - "8000:8000"
     environment:
       - DJANGO_ENV=development
       - DEBUG=1
+
+  nginx:
+    environment:
+      - ENVIRONMENT=development
+    volumes:
+      - ./nginx/dev.conf:/etc/nginx/conf.d/default.conf:ro
+
+  # In development, we don't need certbot
+  certbot:
+    profiles:
+      - prod

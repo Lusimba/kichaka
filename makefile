@@ -56,11 +56,15 @@ dev: ## Start development environment
 	DJANGO_ENV=development \
 	make start
 
+setup-ssl:
+	chmod +x init-letsencrypt.sh
+	./init-letsencrypt.sh
+
 prod: ## Start production environment
 	ENVIRONMENT=production \
 	NODE_ENV=production \
 	DJANGO_ENV=production \
-	make start
+	make start setup-ssl
 
 collectstatic: ## Collect Django static files
 	$(DOCKER_COMPOSE) exec backend python manage.py collectstatic --noinput

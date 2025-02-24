@@ -20,7 +20,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
-          source: ".,!.git/*,!node_modules"
+          source: ".,!.git/*,!node_modules,!certbot/conf/*,!certbot/www/*"
           target: "~/kichaka"
 
       - name: BUILD AND DEPLOY
@@ -31,7 +31,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ~/kichaka
-            echo "ENVIRONMENT=production" > ~/kichaka/.env
-            export ENVIRONMENT=production
-            make rebuild
-            docker compose exec -T backend python manage.py migrate
+            make prod
