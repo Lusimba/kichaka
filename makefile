@@ -58,7 +58,7 @@ dev: ## Start development environment
 
 setup-ssl:
 	chmod +x init-letsencrypt.sh
-	./init-letsencrypt.sh
+	bash ./init-letsencrypt.sh
 
 prod: ## Start production environment
 	ENVIRONMENT=production \
