@@ -19,7 +19,7 @@ services:
     environment:
       - ENVIRONMENT=development
     volumes:
-      - ./nginx/dev.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/dev/default.conf:/etc/nginx/conf.d/default.conf:ro
 
   # In development, we don't need certbot
   certbot:

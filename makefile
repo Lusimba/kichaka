@@ -6,6 +6,13 @@ ENVIRONMENT ?= dev
 NODE_ENV ?= $(ENVIRONMENT)
 DJANGO_ENV ?= $(ENVIRONMENT)
 
+COMPOSE_FILES = -f docker-compose.yml
+ifeq ($(ENVIRONMENT),production)
+    COMPOSE_FILES += -f docker-compose.prod.yml
+else
+    COMPOSE_FILES += -f docker-compose.override.yml
+endif
+
 # Default target
 .DEFAULT_GOAL := help
 
@@ -13,34 +20,34 @@ build: ## Build the Docker images
 	ENVIRONMENT=$(ENVIRONMENT) \
 	NODE_ENV=$(NODE_ENV) \
 	DJANGO_ENV=$(DJANGO_ENV) \
-	$(DOCKER_COMPOSE) build
+	$(DOCKER_COMPOSE) $(COMPOSE_FILES) build
 
 up: ## Start the Docker containers
 	ENVIRONMENT=$(ENVIRONMENT) \
 	NODE_ENV=$(NODE_ENV) \
 	DJANGO_ENV=$(DJANGO_ENV) \
-	$(DOCKER_COMPOSE) up -d
+	$(DOCKER_COMPOSE) $(COMPOSE_FILES) up -d
 
 down: ## Stop and remove the Docker containers
-	$(DOCKER_COMPOSE) down
+	$(DOCKER_COMPOSE) $(COMPOSE_FILES) down
 
 logs: ## View the logs of all containers
-	$(DOCKER_COMPOSE) logs -f
+	$(DOCKER_COMPOSE) $(COMPOSE_FILES) logs -f
 
 shell: ## Open a shell in the backend container
-	$(DOCKER_COMPOSE) exec backend sh
+	$(DOCKER_COMPOSE) $(COMPOSE_FILES) exec backend sh
 
 migrate: ## Run Django migrations
-	$(DOCKER_COMPOSE) exec backend python manage.py migrate
+	$(DOCKER_COMPOSE) $(COMPOSE_FILES) exec backend python manage.py migrate
 
 makemigrations: ## Make Django migrations
-	$(DOCKER_COMPOSE) exec backend python manage.py makemigrations
+	$(DOCKER_COMPOSE) $(COMPOSE_FILES) exec backend python manage.py makemigrations
 
 test: ## Run Django tests
-	$(DOCKER_COMPOSE) exec backend python manage.py test
+	$(DOCKER_COMPOSE) $(COMPOSE_FILES) exec backend python manage.py test
 
 clean: ## Remove all Docker containers, volumes, and images related to the project
-	$(DOCKER_COMPOSE) down -v --rmi all
+	$(DOCKER_COMPOSE) $(COMPOSE_FILES) down -v --rmi all
 
 rebuild: clean ## Rebuild the project from scratch
 	ENVIRONMENT=$(ENVIRONMENT) make build up makemigrations migrate
@@ -67,7 +74,7 @@ prod: ## Start production environment
 	make start setup-ssl
 
 collectstatic: ## Collect Django static files
-	$(DOCKER_COMPOSE) exec backend python manage.py collectstatic --noinput
+	$(DOCKER_COMPOSE) $(COMPOSE_FILES) exec backend python manage.py collectstatic --noinput
 
 help: ## Display this help message
 	@echo "Usage: make [target]"
