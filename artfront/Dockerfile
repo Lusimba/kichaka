@@ -16,15 +16,15 @@ COPY package*.json ./
 
 # Install dependencies using cache mount
 RUN --mount=type=cache,target=/tmp/npm-cache \
-    npm install  --production=false
+    npm install --production=false
 
 # Copy source files
 COPY . .
 
 # Build for production
 RUN if [ "$NODE_ENV" = "production" ]; then \
-    npm install -g vite && \
-    npm run build; \
+    npm run build && \
+    npm prune --production; \ 
     fi
 
 # --- Production Stage ---
