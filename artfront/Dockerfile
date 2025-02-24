@@ -16,17 +16,15 @@ COPY package*.json ./
 
 # Install dependencies using cache mount
 RUN --mount=type=cache,target=/tmp/npm-cache \
-    npm install
+    npm install  --production=false
 
 # Copy source files
 COPY . .
 
 # Build for production
 RUN if [ "$NODE_ENV" = "production" ]; then \
-    echo "PATH=$PATH" && \
-    ls -la /artfront/node_modules/.bin && \
-    which npm && \
-    npm run build || echo "Build failed with $?"; \
+    npm install -g vite && \
+    npm run build; \
     fi
 
 # --- Production Stage ---
