@@ -4,7 +4,7 @@ services:
     command: npm run preview
     environment:
       - NODE_ENV=production
-      - VITE_API_URL=https://kichakapoa.com/api
+      - VITE_API_URL=https://kichakapoa.com
     build:
       target: production
 

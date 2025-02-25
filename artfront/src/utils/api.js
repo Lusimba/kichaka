@@ -1,7 +1,9 @@
+// artfront/src/utils/api.js
 import axios from 'axios';
 
 
-export const URL = import.meta.env.DEV? 'http://127.0.0.1:8000': 'https://kichakapoa.com'
+export const URL = import.meta.env.VITE_API_URL ||
+  ( import.meta.env.DEV ? 'http://127.0.0.1:8000' : 'https://kichakapoa.com' );
 
 const api = axios.create({
   baseURL: URL
