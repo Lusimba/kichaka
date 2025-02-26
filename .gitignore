@@ -40,6 +40,7 @@ artfront/build
 # Environments
 .env
 .venv
+.env.*
 env/
 venv/
 ENV/
