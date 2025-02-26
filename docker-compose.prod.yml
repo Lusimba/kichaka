@@ -1,7 +1,6 @@
 # docker-compose.prod.yml
 services:
   frontend:
-    command: npm run preview
     environment:
       - NODE_ENV=production
       - VITE_API_URL=https://kichakapoa.com

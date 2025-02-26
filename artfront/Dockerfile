@@ -27,8 +27,20 @@ EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 
 # --- Development Stage ---
-FROM builder AS development
+FROM node:18-slim AS development
+
+WORKDIR /artfront
+
+# Copy package files
+COPY package*.json ./
+
+# Install ALL dependencies for development
+RUN npm ci
+
+# We'll mount the source code at runtime
+# This stage is used for development
 
 EXPOSE 5173
 
+# Run Vite dev server with host flag to allow external connections
 CMD ["npm", "run", "dev", "--", "--host"]

@@ -16,17 +16,12 @@ services:
   frontend:
     build: 
       context: ./artfront
-      target: builder
-      args:
-        - NODE_ENV=${NODE_ENV:-development}
+      target: development
     volumes:
       - ./artfront:/artfront:delegated
       - /artfront/node_modules
     expose:
       - "5173"
-    environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - CHOKIDAR_USEPOLLING=true
 
   nginx:
     image: nginx:alpine

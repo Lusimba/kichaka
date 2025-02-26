@@ -1,7 +1,6 @@
 # docker-compose.override.yml
 services:
   frontend:
-    command: npm run dev
     ports:
       - "5173:5173"
     environment:
