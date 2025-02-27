@@ -33,6 +33,7 @@ services:
     volumes:
       - ./artfront:/artfront
       - /artfront/node_modules
+      - ./artfront/dist:/artfront/dist
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - VITE_API_URL=${VITE_API_URL:-http://localhost}
@@ -45,7 +46,16 @@ services:
     # Development only
     ports:
       - "5173:5173"
-    command: npm run ${FRONTEND_COMMAND:-dev}
+    # Use conditional command based on environment
+    command: >
+      sh -c '
+      if [ "${TARGET}" = "production" ] || [ "${ENVIRONMENT}" = "prod" ]; then
+        echo "Running in production mode";
+        # Just keep container running without running npm
+        tail -f /dev/null;
+      else
+        npm run dev;
+      fi'
 
   nginx:
     image: nginx:alpine
@@ -55,12 +65,12 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - static_volume:/var/www/static
       - media_volume:/var/www/media
-      - ./artfront/dist:/var/www/html
-      - /etc/letsencrypt:/etc/letsencrypt
+      - ./artfront/dist:/var/www/html:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
       - /var/www/certbot:/var/www/certbot
     depends_on:
       - backend

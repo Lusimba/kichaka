@@ -100,16 +100,16 @@ restart-frontend: ## Restart only the frontend container
 restart-nginx: ## Restart only the nginx container
 	@docker-compose restart nginx
 
-build-frontend: ## Build frontend assets
-	@echo "${YELLOW}Building frontend assets...${NC}"
+build-frontend: ## Build frontend for production
+	@echo "${YELLOW}Building frontend for production...${NC}"
 	@chmod +x build.sh
 	@./build.sh
-	@echo "${GREEN}Frontend build complete.${NC}"
+	@echo "${GREEN}Frontend built successfully.${NC}"
 
 prod: ## Start production environment
 	@echo "${YELLOW}Starting production environment...${NC}"
 	@chmod +x setup.sh
-	@make setup-prod-env
+	@./setup.sh prod
 	@make build-frontend
-	@export DJANGO_ENV=production TARGET=production NODE_ENV=production && docker compose up -d
+	@export DJANGO_ENV=production TARGET=production NODE_ENV=production FRONTEND_COMMAND="" && docker compose up -d
 	@echo "${GREEN}Production environment started!${NC}"
