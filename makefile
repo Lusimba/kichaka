@@ -106,10 +106,16 @@ build-frontend: ## Build frontend for production
 	@./build.sh
 	@echo "${GREEN}Frontend built successfully.${NC}"
 
+collectstatic: ## Collect Django static files
+	@echo "${YELLOW}Collecting static files...${NC}"
+	@docker compose exec backend python manage.py collectstatic --noinput
+	@echo "${GREEN}Static files collected.${NC}"
+
 prod: ## Start production environment
 	@echo "${YELLOW}Starting production environment...${NC}"
 	@chmod +x setup.sh
 	@./setup.sh prod
 	@make build-frontend
 	@export DJANGO_ENV=production TARGET=production NODE_ENV=production FRONTEND_COMMAND="" && docker compose up -d
+	@docker compose exec backend python manage.py collectstatic --noinput
 	@echo "${GREEN}Production environment started!${NC}"
