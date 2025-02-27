@@ -37,65 +37,79 @@ dev: ## Start development environment
 	@echo "${YELLOW}Starting development environment...${NC}"
 	@chmod +x setup.sh
 	@make setup-dev-env
-	@export DJANGO_ENV=development && export TARGET=development && export NODE_ENV=development && docker compose up -d
+	@export DJANGO_ENV=development && export TARGET=development && export NODE_ENV=development && docker-compose up -d
 	@echo "${GREEN}Development environment started at http://localhost${NC}"
 
 # Production commands
 build: ## Build for production
 	@echo "${YELLOW}Building containers for production...${NC}"
 	@chmod +x setup.sh
-	@export DJANGO_ENV=production && export TARGET=production && export NODE_ENV=production && docker compose build
+	@export DJANGO_ENV=production && export TARGET=production && export NODE_ENV=production && docker-compose build
 	@echo "${GREEN}Production build complete.${NC}"
 
 prod: ## Start production environment
 	@echo "${YELLOW}Starting production environment...${NC}"
 	@chmod +x setup.sh
 	@make setup-prod-env
-	@export DJANGO_ENV=production TARGET=production NODE_ENV=production FRONTEND_COMMAND=build && docker compose up -d
+	@export DJANGO_ENV=production TARGET=production NODE_ENV=production FRONTEND_COMMAND=build && docker-compose up -d
 	@echo "${GREEN}Production environment started!${NC}"
 
 # Utility commands
 stop: ## Stop all containers
 	@echo "${YELLOW}Stopping containers...${NC}"
-	@docker compose down
+	@docker-compose down
 	@echo "${GREEN}Containers stopped.${NC}"
 
 clean: ## Remove all containers, volumes, and networks
 	@echo "${YELLOW}Cleaning up...${NC}"
-	@docker compose down -v --remove-orphans
+	@docker-compose down -v --remove-orphans
 	@echo "${GREEN}Cleanup complete.${NC}"
 
 logs: ## View logs from all containers
-	@docker compose logs -f
+	@docker-compose logs -f
 
 shell-backend: ## Open a shell in the backend container
-	@docker compose exec backend /bin/bash || docker compose exec backend /bin/sh
+	@docker-compose exec backend /bin/bash || docker-compose exec backend /bin/sh
 
 shell-frontend: ## Open a shell in the frontend container
-	@docker compose exec frontend /bin/bash || docker compose exec frontend /bin/sh
+	@docker-compose exec frontend /bin/bash || docker-compose exec frontend /bin/sh
 
 # Django specific commands
 migrate: ## Run Django migrations
-	@docker compose exec backend python manage.py migrate
+	@docker-compose exec backend python manage.py migrate
 
 makemigrations: ## Make Django migrations
-	@docker compose exec backend python manage.py makemigrations
+	@docker-compose exec backend python manage.py makemigrations
 
 collectstatic: ## Collect Django static files
-	@docker compose exec backend python manage.py collectstatic --noinput
+	@docker-compose exec backend python manage.py collectstatic --noinput
 
 createsuperuser: ## Create Django superuser
-	@docker compose exec backend python manage.py createsuperuser
+	@docker-compose exec backend python manage.py createsuperuser
 
 # Development utilities
 restart: ## Restart all containers
-	@docker compose restart
+	@docker-compose restart
 
 restart-backend: ## Restart only the backend container
-	@docker compose restart backend
+	@docker-compose restart backend
 
 restart-frontend: ## Restart only the frontend container
-	@docker compose restart frontend
+	@docker-compose restart frontend
 
 restart-nginx: ## Restart only the nginx container
-	@docker compose restart nginx
+	@docker-compose restart nginx
+
+build-frontend: ## Build frontend assets
+	@echo "${YELLOW}Building frontend assets...${NC}"
+	@chmod +x build.sh
+	@./build.sh
+	@echo "${GREEN}Frontend build complete.${NC}"
+
+prod: ## Start production environment
+	@echo "${YELLOW}Starting production environment...${NC}"
+	@chmod +x setup.sh
+	@make setup-prod-env
+	@make build-frontend
+	@export DJANGO_ENV=production TARGET=production NODE_ENV=production && docker compose up -d
+	@echo "${GREEN}Production environment started!${NC}"
