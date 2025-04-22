@@ -80,7 +80,7 @@ services:
       - backend
       - frontend
     networks:
-      - app_network 
+      - app_network
 
 networks:
   app_network:
