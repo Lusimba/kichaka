@@ -57,6 +57,13 @@ class ArtistCreateView(generics.CreateAPIView):
                         {"error": "Invalid specialization", "details": f"Specialization with id {specialization_id} does not exist"},
                         status=status.HTTP_400_BAD_REQUEST
                     )
+                print(f"Specialization with id {specialization_id} exists 1")
+            else:
+                return Response(
+                    {"error": "Specialization is required"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            print(f"Specialization with id {specialization_id} exists 2")
             
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
